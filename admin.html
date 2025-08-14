@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arcade Admin Panel</title>
+    <style>
+        /* CSS Root Variables */
+        :root {
+            --bg: #0b0b14;
+            --text: #f6f7ff;
+            --card: #10122e;
+            --ok: #22c55e;
+            --accent: #00c6ff;
+            --border: rgba(255, 255, 255, .08);
+            --border-light: rgba(255, 255, 255, .15);
+            --input-bg: #0f1030;
+            --btn-bg: #1a1f4d;
+            --btn-text: #e7e9ff;
+            --sidebar-bg: #0a0a1a;
+            --sidebar-hover: #141533;
+        }
+
+        /* General Styling */
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .wrap {
+            display: flex;
+            width: 100%;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--sidebar-bg);
+            padding: 16px;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            color: var(--btn-text);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: var(--sidebar-hover);
+        }
+
+        .sidebar-menu a .icon {
+            margin-right: 12px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header-info {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .header-info span {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .header-info b {
+            font-size: 1.1em;
+            color: var(--text);
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .action-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-container input {
+            width: 80px;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+        }
+
+        .action-btn {
+            background: var(--btn-bg);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--btn-text);
+        }
+        
+        .action-btn:hover {
+            background: #1a1f4d;
+        }
+
+        .btn-ok {
+            background: var(--ok);
+            color: #fff;
+        }
+
+        /* Filters */
+        .filter-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .filter-controls input[type="date"], .filter-controls button {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+        }
+
+        /* Utility classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="sidebar">
+            <div class="logo">Arcade Admin</div>
+            <div class="sidebar-menu">
+                <a href="#" class="active"><span class="icon">🏠</span> Dashboard</a>
+                <a href="#"><span class="icon">👤</span> Users</a>
+                <a href="#"><span class="icon">🎮</span> Game History</a>
+                <a href="#"><span class="icon">📊</span> Statistics</a>
+                <a href="#"><span class="icon">📞</span> Call & Rip</a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <header>
+                <div class="header-info">
+                    <span>Agent Balance<br><b>885.133</b></span>
+                    <span>Sub Agent Sum<br><b>0</b></span>
+                    <span>Sub User Sum<br><b>0</b></span>
+                    <span>Sub Agent Total Balance<br><b>0</b></span>
+                    <span>DSN Share<br><b>15%</b></span>
+                    <span>Agent Rtp<br><b style="color:red;">0%</b></span>
+                </div>
+                <div>
+                    <span style="margin-right:12px;">English</span>
+                    <button onclick="window.location.reload()">Reload Page</button>
+                </div>
+            </header>
+
+            <div class="card">
+                <h3>Call Manage</h3>
+                <div class="filter-controls">
+                    <div>
+                        Show
+                        <select id="entries-per-page">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                        entries
+                    </div>
+                </div>
+                <table id="playing-users-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>User Code</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Call Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Call Result</h3>
+                <div class="filter-controls">
+                    <div>
+                        <label for="date-filter">Date:</label>
+                        <input type="date" id="date-filter" />
+                        <button onclick="searchCallHistory()">Search</button>
+                    </div>
+                </div>
+                <table id="call-result-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Date</th>
+                            <th>User Code</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<script>
+    /* ---------- Application Constants & State ---------- */
+    const LS_PLAYERS = 'arc.players';
+    const LS_WINS = 'arc.winQueue'; // Key untuk kemenangan tertunda
+    const CHAN_NAME = 'arcade-rt';
+
+    const playingUsersTable = document.getElementById('playing-users-table').querySelector('tbody');
+    const callResultTable = document.getElementById('call-result-table').querySelector('tbody');
+    const dateFilter = document.getElementById('date-filter');
+    
+    let chan = null;
+    let onlineUsers = {};
+    let callHistory = JSON.parse(localStorage.getItem('admin.callHistory')) || [];
+    let userWinAmounts = {};
+
+    /* ---------- Helper Functions ---------- */
+    const readJSON = (key, def) => {
+        try { return JSON.parse(localStorage.getItem(key)) ?? def; }
+        catch { return def; }
+    };
+    const writeJSON = (key, value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+    };
+    const nowms = () => Date.now();
+    const formatNumber = (num) => num.toLocaleString('id-ID');
+
+    /**
+     * Initializes the admin panel.
+     */
+    function init() {
+        chan = new BroadcastChannel(CHAN_NAME);
+        chan.onmessage = (e) => handleMsg(e.data);
+
+        setInterval(() => {
+            const now = nowms();
+            Object.keys(onlineUsers).forEach(user => {
+                if (now - onlineUsers[user].lastSeen > 10000) {
+                    delete onlineUsers[user];
+                }
+            });
+            chan.postMessage({ type: 'request-sync' });
+        }, 5000);
+        
+        setInterval(updatePlayerTable, 2000);
+        
+        renderCallHistory(callHistory);
+        updatePlayerTable();
+    }
+
+    /**
+     * Handles incoming messages from the BroadcastChannel.
+     */
+    function handleMsg(msg) {
+        if (msg.type === 'online') {
+            onlineUsers[msg.user] = { lastSeen: nowms() };
+        }
+    }
+    
+    /**
+     * Renders the list of all players (online/offline).
+     */
+    function updatePlayerTable() {
+        const players = readJSON(LS_PLAYERS, {});
+        playingUsersTable.innerHTML = '';
+        let i = 1;
+        
+        for (const user in players) {
+            const playerData = players[user];
+            const isOnline = onlineUsers[user] && (nowms() - onlineUsers[user].lastSeen < 10000);
+            const status = isOnline ? `<span style="color:var(--ok);">Online</span>` : '<span style="opacity:0.6;">Offline</span>';
+            const lastAmount = userWinAmounts[user] || 50000;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${i++}</td>
+                <td>${user}</td>
+                <td>${formatNumber(playerData.coin)}</td>
+                <td>${status}</td>
+                <td>
+                    <div class="action-container">
+                        <input type="number" id="win-amount-${user}" value="${lastAmount}" min="1000" step="1000">
+                        <button class="action-btn btn-ok" onclick="giveWin('${user}')">CONFIRM</button>
+                    </div>
+                </td>
+            `;
+            playingUsersTable.appendChild(row);
+
+            const inputElement = document.getElementById(`win-amount-${user}`);
+            if (inputElement) {
+                inputElement.addEventListener('change', (e) => {
+                    userWinAmounts[user] = parseInt(e.target.value);
+                });
+            }
+        }
+    }
+
+    /**
+     * Gives a win to a specific user.
+     * @param {string} user - The username to give the win to.
+     */
+    function giveWin(user) {
+        if (!user) return;
+
+        const amountInput = document.getElementById(`win-amount-${user}`);
+        const amount = parseInt(amountInput.value);
+
+        if (isNaN(amount) || amount <= 0) {
+            alert('Jumlah koin tidak valid.');
+            return;
+        }
+
+        const players = readJSON(LS_PLAYERS, {});
+        if (players[user]) {
+            // Simpan kemenangan di queue, tidak langsung menambah saldo
+            const wins = readJSON(LS_WINS, {});
+            wins[user] = (wins[user] || 0) + amount;
+            writeJSON(LS_WINS, wins);
+
+            // Tambahkan ke riwayat kemenangan (tercatat sebagai hadiah)
+            const record = {
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString('id-ID'),
+                user: user,
+                amount: amount,
+                status: 'Menunggu' // Status menunggu diklaim
+            };
+            callHistory.unshift(record);
+            writeJSON('admin.callHistory', callHistory);
+
+            // Kirim notifikasi ke pemain bahwa ada hadiah yang menunggu
+            chan.postMessage({ type: 'win-pending', user: user });
+        } else {
+            alert('Pemain tidak ditemukan.');
+        }
+
+        // Update UI
+        updatePlayerTable();
+        renderCallHistory(callHistory);
+        alert(`Hadiah ${formatNumber(amount)} berhasil diberikan ke ${user} dan menunggu untuk diklaim.`);
+    }
+
+    /**
+     * Renders the call history table.
+     * @param {Array} records - The array of history records to display.
+     */
+    function renderCallHistory(records) {
+        callResultTable.innerHTML = '';
+        records.forEach((record, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${record.date} ${record.time}</td>
+                <td>${record.user}</td>
+                <td>+${formatNumber(record.amount)}</td>
+                <td>${record.status}</td>
+            `;
+            callResultTable.appendChild(row);
+        });
+    }
+
+    /**
+     * Filters and searches the call history based on a date.
+     */
+    function searchCallHistory() {
+        const date = dateFilter.value;
+        const filteredHistory = date ? callHistory.filter(record => record.date === date) : callHistory;
+        renderCallHistory(filteredHistory);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

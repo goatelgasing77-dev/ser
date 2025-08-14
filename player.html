@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arcade Player</title>
+    <style>
+        /* CSS Root Variables */
+        :root {
+            --bg: #0b0b14;
+            --text: #f6f7ff;
+            --card: #10122e;
+            --ok: #22c55e;
+            --accent: #00c6ff;
+            --border: rgba(255, 255, 255, .08);
+            --border-light: rgba(255, 255, 255, .15);
+            --input-bg: #0f1030;
+            --btn-bg: #1a1f4d;
+            --btn-text: #e7e9ff;
+        }
+
+        /* General Styling */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        /* Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .header-balance {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .header-balance > div {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+        }
+        
+        .header-balance .balance-label {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+        
+        .header-balance .balance-value {
+            font-weight: 700;
+        }
+
+        .wrap {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+        }
+        
+        .card.buy-sell-card {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 250px;
+            z-index: 100;
+        }
+        
+        .buy-sell-card h3 {
+            margin-top: 0;
+        }
+
+        /* Form Elements */
+        input {
+            width: 100%;
+            padding: 11px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+            background: var(--input-bg);
+            color: var(--text);
+            margin-top: 8px;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, .4);
+        }
+        
+        .buy-sell-card input {
+            width: calc(100% - 70px);
+            display: inline-block;
+            margin-top: 0;
+            margin-right: 5px;
+        }
+        
+        .buy-sell-card .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        /* Buttons */
+        button, .btn {
+            width: 100%;
+            padding: 12px;
+            border: 0;
+            border-radius: 12px;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            font-weight: 700;
+            cursor: pointer;
+            margin: 6px 0;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover, .btn:hover {
+            background: rgba(26, 31, 77, 0.8);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0072ff, #00c6ff);
+            color: #fff;
+            font-weight: 900;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .games button {
+            margin-top: 6px;
+        }
+        
+        .btn-green {
+            background: #28a745;
+        }
+        .btn-green:hover {
+            background: #218838;
+        }
+        .btn-red {
+            background: #dc3545;
+        }
+        .btn-red:hover {
+            background: #c82333;
+        }
+
+        /* Arena */
+        .arena {
+            position: relative;
+            min-height: 480px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bg {
+            position: absolute;
+            inset: 0;
+            background-position: center;
+            background-size: cover;
+            opacity: .22;
+            filter: contrast(1.1) saturate(1.1);
+            transition: background-image 0.5s ease-in-out;
+        }
+        
+        /* Death visual for when coin is 0 */
+        .bg.death {
+            background-image: url('https://i.ibb.co/L5r64hT/symbol-scatter.png') !important;
+            opacity: 1;
+            filter: grayscale(100%);
+        }
+
+        .arena-inner {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 22px;
+            text-align: center;
+        }
+        
+        /* Visual elements */
+        #loading-spin {
+            position: absolute;
+            z-index: 3;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        #loading-spin img {
+            width: 100px;
+        }
+
+        #jackpot-visual {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 4;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            animation: jackpot-bg 0.5s infinite alternate;
+        }
+        
+        #jackpot-visual h2 {
+            font-size: 3em;
+            color: gold;
+            text-shadow: 2px 2px 5px black;
+            animation: jackpot-text 1s infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes jackpot-bg {
+            from { opacity: 0.8; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes jackpot-text {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        .hint {
+            opacity: .85;
+            font-size: 14px;
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: .9;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10%) rotate(0); }
+            100% { transform: translateY(110%) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>⚡ Arcade Player</div>
+        <div class="header-balance">
+            <div>
+                <span class="balance-label">Uang Virtual</span>
+                <span class="balance-value" id="moneyText">—</span>
+            </div>
+            <div>
+                <span class="balance-label">Coin</span>
+                <span class="balance-value" id="coinText">—</span>
+            </div>
+            <div>
+                <span class="balance-label">Harga Refresh</span>
+                <span class="balance-value" id="priceText">—</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="wrap">
+        <div class="card">
+            <h3>Login / Daftar</h3>
+            <div id="authBox">
+                <input id="u" placeholder="Username" />
+                <input id="p" placeholder="Password (bebas)" type="password" />
+                <button class="btn btn-primary" onclick="login()">Masuk</button>
+            </div>
+
+            <h3 style="margin-top:14px">Pilih Game</h3>
+            <div class="games">
+                <button onclick="selectGame('Candy Crush')">Candy Crush</button>
+                <button onclick="selectGame('Saga')">Saga</button>
+                <button onclick="selectGame('Farel')">Farel</button>
+                <button onclick="selectGame('Pace')">Pace</button>
+                <button onclick="selectGame('Zero')">Zero</button>
+                <button onclick="selectGame('Aaroon')">Aaroon</button>
+            </div>
+
+            <h3 style="margin-top:14px">Taruhan</h3>
+            <input id="stake" type="number" min="100" step="100" value="1000" oninput="updatePrice()" />
+            <div class="hint">Harga refresh = nilai taruhan.</div>
+        </div>
+
+        <div class="card arena">
+            <div id="bg" class="bg"></div>
+            <div id="loading-spin">
+                <img src="https://i.ibb.co/3s63kKq/spin.png" alt="Loading">
+                <span>Loading...</span>
+            </div>
+            <div id="jackpot-visual">
+                <h2>JACKPOT!</h2>
+            </div>
+            <div class="arena-inner">
+                <div>
+                    <h2 id="gameTitle">Pilih game dulu</h2>
+                    <div id="msg" class="hint">Atur taruhan lalu tekan tombol untuk mulai/refresh.</div>
+                </div>
+                <button id="playBtn" class="btn btn-primary" style="display:none" onclick="play()">Mulai / Refresh</button>
+                <div><span class="pill">Status: <span id="status">Idle</span></span></div>
+            </div>
+            <div id="confetti" class="confetti"></div>
+        </div>
+    </div>
+
+    <div id="buy-sell-card" class="card buy-sell-card" style="display: none;">
+        <h3>Jual Beli Koin</h3>
+        <div class="hint" style="margin-bottom: 10px;">Saldo Uang Virtual: <span id="buySellMoneyText">0</span> IDR</div>
+        <div class="input-group">
+            <input id="buySellAmount" type="number" min="1" value="10" /><span>Coin</span>
+        </div>
+        <button class="btn-green" onclick="buyCoins()">Beli Coin (1K/Coin)</button>
+        <button class="btn-red" onclick="sellCoins()">Jual Coin (1K/Coin)</button>
+    </div>
+
+    <audio id="yeah" src="https://www.soundjay.com/human/yeah-1.mp3" preload="auto"></audio>
+    <audio id="wow" src="https://www.soundjay.com/human/wow-1.mp3" preload="auto"></audio>
+
+<script>
+    /* ---------- Application Constants & DOM Elements ---------- */
+    const LS_PLAYERS = 'arc.players';
+    const LS_WINS = 'arc.winQueue'; // Key untuk kemenangan tertunda
+    const CHAN_NAME = 'arcade-rt';
+    const COIN_VALUE = 1000;
+
+    const coinText = document.getElementById('coinText');
+    const moneyText = document.getElementById('moneyText');
+    const priceText = document.getElementById('priceText');
+    const titleEl = document.getElementById('gameTitle');
+    const msgEl = document.getElementById('msg');
+    const bgEl = document.getElementById('bg');
+    const playBtn = document.getElementById('playBtn');
+    const statusEl = document.getElementById('status');
+    const confetti = document.getElementById('confetti');
+    const stakeEl = document.getElementById('stake');
+    const buySellCard = document.getElementById('buy-sell-card');
+    const buySellAmount = document.getElementById('buySellAmount');
+    const buySellMoneyText = document.getElementById('buySellMoneyText');
+    const loadingSpin = document.getElementById('loading-spin');
+    const jackpotVisual = document.getElementById('jackpot-visual');
+    const arenaInner = document.querySelector('.arena-inner');
+
+    const sndYeah = document.getElementById('yeah');
+    const sndWow = document.getElementById('wow');
+
+    const lightning = 'https://i.ibb.co/sK6Wp9f/symbol-crown.png';
+    const death = 'https://i.ibb.co/L5r64hT/symbol-scatter.png';
+    const BG_BY_GAME = {
+        'Candy Crush': 'https://i.ibb.co/4T1d1Xv/candy-crush.jpg',
+        'Saga': 'https://i.ibb.co/P4Jz5fG/saga.jpg',
+        'Farel': 'https://i.ibb.co/68v8g7k/farel.jpg',
+        'Pace': 'https://i.ibb.co/wzH244Q/pace.jpg',
+        'Zero': 'https://i.ibb.co/C0WcT8v/zero.jpg',
+        'Aaroon': 'https://i.ibb.co/f23c72N/aaroon.jpg'
+    };
+    
+    /* ---------- State Variables ---------- */
+    let me = null;
+    let meData = null;
+    let selectedGame = null;
+    let chan = null;
+    let heart = null;
+    let isPlaying = false;
+
+    /* ---------- Helper Functions ---------- */
+    /**
+     * Reads and parses JSON from localStorage.
+     * @param {string} key - The key in localStorage.
+     * @param {*} def - Default value if key is not found or parsing fails.
+     * @returns {*} The parsed object or default value.
+     */
+    const readJSON = (key, def) => {
+        try {
+            return JSON.parse(localStorage.getItem(key)) ?? def;
+        } catch {
+            return def;
+        }
+    };
+
+    /**
+     * Writes a JavaScript object to localStorage as a JSON string.
+     * @param {string} key - The key in localStorage.
+     * @param {*} value - The object to store.
+     */
+    const writeJSON = (key, value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+    };
+
+    /**
+     * Gets the current timestamp in milliseconds.
+     * @returns {number} Current timestamp.
+     */
+    const nowms = () => Date.now();
+
+    /* ---------- Authentication ---------- */
+    /**
+     * Handles the user login process.
+     * Creates a new user if one doesn't exist.
+     */
+    function login() {
+        const u = (document.getElementById('u').value || 'player').trim();
+        const p = document.getElementById('p').value || '1234';
+        const players = readJSON(LS_PLAYERS, {});
+
+        let data = players[u];
+        if (!data) {
+            // New player gets 10000 coin, 30000 money
+            data = { username: u, password: p, coin: 10000, money: 30000, firstWinAwarded: false, lastGame: '', lastSeen: nowms() };
+            players[u] = data;
+            writeJSON(LS_PLAYERS, players);
+        }
+        
+        // Set global user state
+        me = u;
+        meData = data;
+        
+        // Update UI
+        document.getElementById('authBox').innerHTML = `Masuk sebagai <b>${u}</b>`;
+        updatePrice();
+        buySellCard.style.display = 'block';
+
+        // Initialize BroadcastChannel for real-time communication
+        chan = new BroadcastChannel(CHAN_NAME);
+        chan.onmessage = (e) => handleMsg(e.data);
+
+        // Start heartbeat to update last seen and sync coin
+        heart = setInterval(() => {
+            const P = readJSON(LS_PLAYERS, {});
+            if (P[me]) {
+                P[me].lastSeen = nowms();
+                P[me].lastGame = selectedGame || P[me].lastGame;
+                writeJSON(LS_PLAYERS, P);
+            }
+            meData = P[me];
+            updateCoinAndMoneyUI();
+        }, 1500);
+
+        // Notify admin about new player
+        broadcast({ type: 'online', user: me });
+    }
+    
+    function updateCoinAndMoneyUI() {
+        if (!meData) return;
+        coinText.textContent = (meData.coin || 0).toLocaleString('id-ID');
+        moneyText.textContent = (meData.money || 0).toLocaleString('id-ID');
+        buySellMoneyText.textContent = (meData.money || 0).toLocaleString('id-ID');
+        
+        // Check for death state
+        if (meData.coin <= 0) {
+            bgEl.style.backgroundImage = `url("${death}")`;
+            bgEl.classList.add('death');
+            playBtn.disabled = true;
+            arenaInner.style.display = 'none';
+        } else {
+            if (selectedGame) {
+                bgEl.style.backgroundImage = `url("${BG_BY_GAME[selectedGame] || lightning}")`;
+            } else {
+                bgEl.style.backgroundImage = '';
+            }
+            bgEl.classList.remove('death');
+            playBtn.disabled = false;
+            arenaInner.style.display = 'flex';
+        }
+    }
+
+    /**
+     * Updates the displayed refresh price based on the stake input.
+     */
+    function updatePrice() {
+        const price = Math.max(100, parseInt(stakeEl.value || '0', 10));
+        priceText.textContent = price.toLocaleString('id-ID');
+    }
+
+    /* ---------- Game Selection ---------- */
+    /**
+     * Selects a game and updates the UI.
+     * @param {string} name - The name of the selected game.
+     */
+    function selectGame(name) {
+        if (!me) {
+            msgEl.textContent = 'Login dulu.';
+            return;
+        }
+        selectedGame = name;
+        titleEl.textContent = name;
+        playBtn.style.display = 'inline-block';
+        bgEl.style.backgroundImage = `url("${BG_BY_GAME[name] || lightning}")`;
+        msgEl.textContent = 'Siap! Tekan tombol untuk mulai/refresh.';
+        statusEl.textContent = 'Ready';
+
+        const P = readJSON(LS_PLAYERS, {});
+        if (P[me]) {
+            P[me].lastGame = name;
+            writeJSON(LS_PLAYERS, P);
+        }
+        broadcast({ type: 'game', user: me, game: name });
+        updateCoinAndMoneyUI();
+    }
+
+    /* ---------- Game Play Logic ---------- */
+    /**
+     * Handles the "Play" or "Refresh" button click.
+     */
+    function play() {
+        if (!me || !selectedGame || isPlaying) return;
+
+        const bet = Math.max(100, parseInt(stakeEl.value || '0', 10));
+        const P = readJSON(LS_PLAYERS, {});
+        const W = readJSON(LS_WINS, {});
+        const p = P[me];
+
+        if (!p) return;
+
+        // Cek dan tambahkan kemenangan dari antrian sebelum mengurangi taruhan
+        let claimedWin = 0;
+        if (W[me] && W[me] > 0) {
+            claimedWin = W[me];
+            p.coin += claimedWin;
+            delete W[me]; // Hapus kemenangan dari antrian setelah diklaim
+        }
+        
+        // Kurangi taruhan setelah mengklaim kemenangan
+        if (p.coin < bet) {
+            msgEl.textContent = 'Coin tidak cukup.';
+            updateCoinAndMoneyUI();
+            return;
+        }
+        p.coin -= bet;
+
+        isPlaying = true;
+        playBtn.disabled = true;
+        statusEl.textContent = 'Playing...';
+        arenaInner.style.display = 'none';
+        loadingSpin.style.display = 'flex';
+        msgEl.textContent = 'Sedang ngespin...';
+
+        setTimeout(() => {
+            if (claimedWin > 0) {
+                celebrate(`🎉 Hadiah dari Admin! +${claimedWin.toLocaleString('id-ID')} coin`);
+            } else if (!p.firstWinAwarded) {
+                const reward = bet * 100;
+                p.coin += reward;
+                p.firstWinAwarded = true;
+                celebrate(`🎉 Kemenangan awal! +${reward.toLocaleString('id-ID')} coin`);
+            } else {
+                msgEl.textContent = `Main ${selectedGame}. -${bet.toLocaleString('id-ID')} coin.`;
+                statusEl.textContent = 'Playing...';
+            }
+            
+            // Update player data dan UI
+            P[me] = p;
+            writeJSON(LS_PLAYERS, P);
+            writeJSON(LS_WINS, W); // Simpan status antrian kemenangan yang sudah diperbarui
+            meData = p;
+            updateCoinAndMoneyUI();
+
+            // Notifikasi admin
+            broadcast({ type: 'refresh', user: me, game: selectedGame, bet });
+            
+            isPlaying = false;
+            playBtn.disabled = false;
+            loadingSpin.style.display = 'none';
+            arenaInner.style.display = 'flex';
+
+        }, 2000); // 2 detik visual spin
+    }
+
+    /**
+     * Triggers a celebration animation and sound for a win.
+     * @param {string} text - The message to display.
+     */
+    function celebrate(text) {
+        msgEl.textContent = text;
+        statusEl.textContent = 'WIN';
+        jackpotVisual.style.display = 'flex';
+        setTimeout(() => {
+            jackpotVisual.style.display = 'none';
+        }, 3000);
+        try {
+            sndYeah.currentTime = 0;
+            sndYeah.play();
+            setTimeout(() => {
+                sndWow.currentTime = 0;
+                sndWow.play()
+            }, 450);
+        } catch (e) {
+            console.error("Audio playback failed", e);
+        }
+
+        confetti.innerHTML = '';
+        for (let i = 0; i < 80; i++) {
+            const d = document.createElement('div');
+            d.className = 'piece';
+            d.style.left = (Math.random() * 100) + '%';
+            d.style.top = '-10%';
+            d.style.background = `hsl(${Math.random() * 360}, 100%, 55%)`;
+            d.style.animation = `fall ${1.8 + Math.random() * 0.9}s linear forwards`;
+            confetti.appendChild(d);
+        }
+    }
+    
+    function buyCoins() {
+        const coinAmount = parseInt(buySellAmount.value);
+        if (isNaN(coinAmount) || coinAmount <= 0) {
+            alert('Jumlah koin tidak valid.');
+            return;
+        }
+
+        const moneyCost = coinAmount * COIN_VALUE;
+        const players = readJSON(LS_PLAYERS, {});
+        const p = players[me];
+        
+        if (p && p.money >= moneyCost) {
+            p.money -= moneyCost;
+            p.coin += coinAmount;
+            writeJSON(LS_PLAYERS, players);
+            meData = p;
+            updateCoinAndMoneyUI();
+            alert(`Berhasil membeli ${coinAmount} koin dengan ${moneyCost} IDR.`);
+            broadcast({ type: 'buy', user: me, amount: coinAmount, money: moneyCost });
+        } else {
+            alert('Saldo uang virtual tidak mencukupi.');
+        }
+    }
+    
+    function sellCoins() {
+        const coinAmount = parseInt(buySellAmount.value);
+        if (isNaN(coinAmount) || coinAmount <= 0) {
+            alert('Jumlah koin tidak valid.');
+            return;
+        }
+
+        const moneyReceive = coinAmount * COIN_VALUE;
+        const players = readJSON(LS_PLAYERS, {});
+        const p = players[me];
+        
+        if (p && p.coin >= coinAmount) {
+            p.coin -= coinAmount;
+            p.money += moneyReceive;
+            writeJSON(LS_PLAYERS, players);
+            meData = p;
+            updateCoinAndMoneyUI();
+            alert(`Berhasil menjual ${coinAmount} koin dan mendapatkan ${moneyReceive} IDR.`);
+            broadcast({ type: 'sell', user: me, amount: coinAmount, money: moneyReceive });
+        } else {
+            alert('Saldo koin tidak mencukupi.');
+        }
+    }
+
+    /* ---------- Real-time Communication ---------- */
+    /**
+     * Sends a message to the BroadcastChannel.
+     * @param {object} payload - The message payload.
+     */
+    function broadcast(payload) {
+        if (chan) chan.postMessage(payload);
+    }
+
+    /**
+     * Handles incoming messages from the BroadcastChannel.
+     * @param {object} msg - The message received.
+     */
+    function handleMsg(msg) {
+        if (msg?.type === 'request-sync' && me) {
+            broadcast({ type: 'online', user: me });
+        }
+        if (msg?.type === 'win-pending' && msg?.user === me) {
+            alert('Ada hadiah kemenangan menunggu! Tekan tombol "Mulai / Refresh" untuk mengklaim.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', updatePrice);
+</script>
+</body>
+</html>
