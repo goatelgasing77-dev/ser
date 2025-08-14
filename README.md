@@ -1,0 +1,2 @@
+# ser
+sistem menang awal
